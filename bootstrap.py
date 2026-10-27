@@ -27,6 +27,9 @@ def load_values(config: Path | None, overrides: dict) -> dict:
     values, problems = {}, []
     for field, (section, key, pattern) in FIELDS.items():
         value = overrides.get(field) or cfg.get(section, {}).get(key)
+        if field == "name" and value:
+            # Repo names like My_Repo become my-repo.
+            value = str(value).lower().replace("_", "-")
         if not value:
             problems.append(f"missing {section}.{key} (--{field.replace('_', '-')})")
         elif not re.fullmatch(pattern, str(value)):
