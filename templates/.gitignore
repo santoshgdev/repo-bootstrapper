@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+*.env
+# PyCharm stores run-config env vars (DOPPLER_TOKEN) here.
+.idea/workspace.xml
+.idea/shelf/

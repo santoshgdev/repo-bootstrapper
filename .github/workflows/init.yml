@@ -1,0 +1,63 @@
+# Run once in a repo created from this template: renders the project files
+# into the repo root, removes the bootstrapper, and commits.
+# This file stays behind: GITHUB_TOKEN can't push changes under .github/workflows.
+# Delete it by hand after init; re-runs refuse once bootstrap.py is gone.
+name: Initialize repo
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: Project name (lowercase, dashes); defaults to the repo name
+        required: false
+      python:
+        description: Python version
+        default: "3.14"
+      doppler_project:
+        description: Doppler project
+        required: true
+      doppler_config:
+        description: Doppler config
+        default: dev
+
+permissions:
+  contents: write
+
+jobs:
+  init:
+    # Never run in the template itself.
+    if: ${{ !github.event.repository.is_template }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Refuse if already initialized
+        run: test -f bootstrap.py || { echo "::error::bootstrap.py not found; repo is already initialized"; exit 1; }
+
+      - name: Render into a temp dir
+        env:
+          NAME: ${{ inputs.name || github.event.repository.name }}
+          PYTHON: ${{ inputs.python }}
+          DOPPLER_PROJECT: ${{ inputs.doppler_project }}
+          DOPPLER_CONFIG: ${{ inputs.doppler_config }}
+        run: |
+          python3 bootstrap.py --no-git --dest "$RUNNER_TEMP/out" \
+            --name "$NAME" --python "$PYTHON" \
+            --doppler-project "$DOPPLER_PROJECT" --doppler-config "$DOPPLER_CONFIG"
+
+      - name: Replace bootstrapper with rendered files
+        run: |
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .github -exec rm -rf {} +
+          cp -a "$RUNNER_TEMP/out/." .
+          git status --short
+
+      - name: Commit
+        env:
+          DOPPLER_PROJECT: ${{ inputs.doppler_project }}
+          DOPPLER_CONFIG: ${{ inputs.doppler_config }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Initialize from repo-bootstrapper (doppler $DOPPLER_PROJECT/$DOPPLER_CONFIG)"
+          git push

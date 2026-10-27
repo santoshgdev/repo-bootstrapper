@@ -1,0 +1,13 @@
+[project]
+name = "my-service"
+python = "3.14"
+
+# Baked into the image as DOPPLER_PROJECT / DOPPLER_CONFIG.
+[doppler]
+project = "my-doppler-project"
+config = "dev"
+
+# Optional; defaults live in bootstrap.py.
+[versions]
+uv = "0.11.1"
+doppler = "3.77.1"
