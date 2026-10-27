@@ -20,3 +20,9 @@ Flags (`--name`, `--python`, `--doppler-project`, `--doppler-config`) override t
 ## What a generated repo needs at run time
 
 `DOPPLER_TOKEN`: a read-only service token for the chosen project/config. Never commit it.
+
+## PyCharm
+
+1. `make build`, then add a Docker interpreter on image `<name>:dev` and name it `<name> docker`.
+2. `make pycharm` installs the `handler` run config into `.idea/runConfigurations/` (gitignored).
+3. Fill in `DOPPLER_TOKEN` in that run config. The image's `doppler run` entrypoint injects the secrets.
